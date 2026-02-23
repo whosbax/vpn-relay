@@ -1,0 +1,72 @@
+# ==================================================
+# OpenVPN - sensitive credentials (ignore in repo)
+# ==================================================
+config/openvpn/auth.txt
+config/openvpn/client.ovpn
+
+# Domains list can contenir des cibles privées → ignore
+config/domains.txt
+config/params.conf
+# ==================================================
+# Exports et fichiers temporaires
+# ==================================================
+/exports/
+/**/*exports/*
+*.bak
+*.tmp
+
+# ==================================================
+# Logs
+# ==================================================
+*.log
+
+# ==================================================
+# Systemd overrides, drop-in files, generated units
+# ==================================================
+*.service~
+*.timer~
+/etc/systemd/system/*.service
+/etc/systemd/system/*.timer
+
+# ==================================================
+# OS / IDE / Editor
+# ==================================================
+*.swp
+*.swo
+*.DS_Store
+
+# VSCode
+.vscode/
+.vscode/**
+
+# JetBrains
+.idea/
+*.iml
+
+# ==================================================
+# Sensitive keys, certs, private data
+# ==================================================
+*.pem
+*.crt
+*.key
+*.p12
+*.pfx
+auth.txt
+keys/
+
+# ==================================================
+# Package manager / shell artifacts
+# ==================================================
+*.cache
+*.env
+.env.*
+
+# ==================================================
+# Keep everything else (scripts, templates, config skeletons)
+# ==================================================
+!config/params.conf.example
+!config/
+!scripts/
+!install.sh
+!uninstall.sh
+!README.md
