@@ -60,7 +60,7 @@ keys/
 *.cache
 *.env
 .env.*
-
+*vpn_killswitch.env
 # ==================================================
 # Keep everything else (scripts, templates, config skeletons)
 # ==================================================
@@ -70,3 +70,4 @@ keys/
 !install.sh
 !uninstall.sh
 !README.md
+!vpn_killswitch.example.env
