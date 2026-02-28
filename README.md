@@ -42,6 +42,7 @@ Ce projet est un exemple de split tunneling *par destination* (policy-based spli
 
 ```
 vpn-relay/
+├── clients/                     # Scrits additionnels clients (ex: killswitch)
 ├── config/
 │   ├── domains.txt              # Liste des domaines/IP à router via OpenVPN
 │   ├── params.conf              # Configuration globale (interfaces, IPs, DNS, etc.)
@@ -183,17 +184,5 @@ Il arrêtera les services, restaurera les politiques réseau par défaut et supp
 * Vérifie régulièrement les règles iptables et ipset après modifications.
 * Teste la résolution DNS et le routage avec `dig` ou `traceroute` depuis un client WireGuard.
 * Versionne le fichier `config/params.conf` (sans les clés privées) dans ton dépôt protégé.
-
----
-
-## 🏷️ LICENSE
-
-Licencie ce projet selon le modèle de ton choix (MIT, Apache 2.0, GPL, etc.).
-
----
-
-## 📚 Références
-
-Ce type de routage conditionnel est une variante de ce que l’on appelle **split tunneling ou policy-based routing**, permettant de router seulement certains flux via un tunnel VPN tout en laissant le reste utiliser d’autres routes réseau. ([wiresock.net][1])
 
 ---
