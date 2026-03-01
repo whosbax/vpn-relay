@@ -10,11 +10,24 @@ source "$SCRIPT_DIR/vpn_killswitch.env"
 if [[ -z "$TOR_UID" ]]; then
     TOR_UID=$(id -u "$TOR_USER")
 fi
+
 # Attendre que wg0 soit UP
 while ! ip link show "$WG_IFACE" | grep -q "UP"; do
     echo "[*] Attente de l'interface WireGuard $WG_IFACE..."
     sleep 1
 done
+
+# --- Récupérer l'adresse de la passerelle par défaut (routeur) de manière dynamique ---
+ROUTER_IP=$(ip route | grep default | awk '{print $3}')
+
+# Vérifier si l'adresse du routeur a bien été récupérée
+if [[ -z "$ROUTER_IP" ]]; then
+    echo "[!] Impossible de récupérer l'adresse du routeur."
+    exit 1
+fi
+
+echo "[*] Passerelle détectée : $ROUTER_IP"
+
 # --- Crée le répertoire /etc/iproute2 et le fichier rt_tables si absent ---
 if [[ ! -d /etc/iproute2 ]]; then
     echo "[*] /etc/iproute2 absent, création..."
@@ -39,17 +52,28 @@ sudo ip route replace default dev "$WG_IFACE" table "$VPN_TABLE"
 sudo ip rule add from all lookup "$VPN_TABLE" priority "$VPN_PRIORITY" || true
 
 # --- Kill switch nftables ---
+# Créer la table killswitch si elle n'existe pas
 sudo nft add table inet killswitch || true
+
+# Ajouter la règle permettant le trafic vers le routeur local de manière dynamique
+if ! sudo nft list ruleset | grep -q "ip daddr $ROUTER_IP"; then
+    echo "[*] Ajout de la règle pour permettre le trafic vers le routeur local $ROUTER_IP"
+    sudo nft add rule inet killswitch output ip daddr "$ROUTER_IP" accept || true
+fi
+
+# Créer la chaîne killswitch si elle n'existe pas
 sudo nft add chain inet killswitch output '{ type filter hook output priority 0 ; policy drop ; }' || true
+
+# Ajouter les règles spécifiques (VPN, Tor, etc.)
 sudo nft add rule inet killswitch output oif lo accept || true
 sudo nft add rule inet killswitch output oifname "$WG_IFACE" accept || true
 sudo nft add rule inet killswitch output meta skuid "$TOR_UID" accept || true
 sudo nft add rule inet killswitch output ip daddr "$WG_SERVER_IPV4" udp dport "$WG_PORT" accept || true
 sudo nft add rule inet killswitch output ip6 daddr "$WG_SERVER_IPV6" udp dport "$WG_PORT" accept || true
 
-
 echo "[*] Redémarrage rapide de l'interface WireGuard pour activer les routes..."
 sudo ip link set dev "$WG_IFACE" down
 sudo ip link set dev "$WG_IFACE" up
 sleep 1
+
 echo "[*] Kill switch appliqué avec succès !"
